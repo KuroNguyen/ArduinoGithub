@@ -21,10 +21,9 @@
 char ssid[] = "KuroThesis";          // your network SSID (name)
 char pass[] = "HOILAMGI";                    // your network password
 String str;
-
-char *addPattern[];
-char *range[];
-char messageData[20] = {'*','1','2','3','*','1','2','3','*','1','2','3','\n'};
+char rangeValue[] = "00000";
+char rxValue[] = "00000";
+int k; //State for sending message
 WiFiUDP Udp;                                // A UDP instance to let us send and receive packets over UDP
 const IPAddress outIp(192,168,0,3);        // remote IP of your computer
 const unsigned int outPort = 12000;          // remote port to receive OSC
@@ -62,34 +61,47 @@ void setup() {
 
 void loop() 
 {
-//      if (Serial.available()>0) 
-//      {
-//        //Read string from Pro mini
-//        str = Serial.readStringUntil('\n');
-//        Serial.println(str.charAt(str.length()-1));
-//        for (int i=0;i<str.length();i++)
-//        {
-//          if(str.charAt(i) != '*')
-//          {
-//            addPattern[i] = str.charAt(i);
-//            Serial.println(i);
-//          }
-//        }
-//        for (int i=0;i< str.length();i++)
-//        {
-//          Serial.print(i);
-//          Serial.println(addPattern[i]);
-//          
-//        }
-//      }
-      OSCMessage msg("/test");
-      msg.add(addPattern);
-      Udp.beginPacket(outIp, outPort);
-      msg.send(Udp);
-      Udp.endPacket();
-      msg.empty();
-      delay(500);
-      
+  int i = 0;
+  int b = 0;
+      if (Serial.available()>0) 
+      {
+        //Read string from Pro mini
+        str = Serial.readStringUntil('\n');
+        //Serial.println(str.charAt(str.length()-1));
+        //Set address pattern for osc message
+        if (str.charAt(0) == '1')
+          k = 1;
+        else 
+          k = 0;
+        //Ranging value
+        
+        while (str.charAt(i+1) != '-')
+        {
+          rangeValue[i] = str.charAt(i+1);
+          //Serial.println(rangeValue[i]);
+          i++;
+        }
+
+        //Rx value
+        Serial.println(rangeValue);
+        for (i;i< str.length();i++)
+        {
+          rxValue[b] = str.charAt(i+1); 
+          b++;
+        }
+        Serial.println(rxValue);
+      }
+      if(k == 1)
+      {
+        OSCMessage msg("/Anchor1");
+        msg.add(rangeValue);
+        msg.add(rxValue);
+        Udp.beginPacket(outIp, outPort);
+        msg.send(Udp);
+        Udp.endPacket();
+        msg.empty();
+        delay(500);
+      }
 }      
 //        OSCMessage msg("/test");
 //        int i =0 ;
@@ -107,4 +119,3 @@ void loop()
 //        //Serial.println(str);
 //        msg.empty();
 //        delay(500);
-
